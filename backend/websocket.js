@@ -19,60 +19,81 @@ const startWebSocket = () => {
 
                 connection.on("message", async (message) => {
                     try {
-                        const { userId, content } = JSON.parse(message);
-                        const user = await newDatabaseLogin.findOne({
-                            where: {
-                                id: userId,
-                            },
-                        });
+                        const payload = JSON.parse(message);
 
-                        const name = user.dataValues.name;
+                        if (payload.type) {
+                            const name = payload.data;
+                            ws.clients.forEach((element) => {
+                                if (
+                                    element.readyState === 1 &&
+                                    element !== connection
+                                ) {
+                                    element.send(
+                                        JSON.stringify({
+                                            type: "alert",
+                                            userName: name,
+                                        }),
+                                    );
+                                }
+                            });
+                        } else {
+                            const { userId, content } = payload;
+                            const user = await newDatabaseLogin.findOne({
+                                where: {
+                                    id: userId,
+                                },
+                            });
 
-                        await newMessege(content, name, userId, "1");
+                            const name = user.dataValues.name;
 
-                        const newMessagePayload = JSON.stringify({
-                            userId,
-                            content,
-                            name,
-                        });
+                            await newMessege(content, name, userId, "1");
 
-                        ws.clients.forEach((client) => {
-                            if (
-                                client.readyState === 1 &&
-                                client !== connection
-                            ) {
-                                client.send(newMessagePayload);
-                            }
-                        });
+                            const newMessagePayload = JSON.stringify({
+                                userId,
+                                content,
+                                name,
+                            });
 
-                        const contentLower = content.toLowerCase();
+                            ws.clients.forEach((client) => {
+                                if (
+                                    client.readyState === 1 &&
+                                    client !== connection
+                                ) {
+                                    client.send(newMessagePayload);
+                                }
+                            });
 
-                        if (contentLower.includes("@bot")) {
-                            const input = content.replace("@bot", "").trim();
-                            const question = `o usuario ${name} disse:${input}`;
+                            const contentLower = content.toLowerCase();
 
-                            const nameAi = "Bot OpenAI";
-                            const userIdAi = 0;
+                            if (contentLower.includes("@bot")) {
+                                const input = content
+                                    .replace("@bot", "")
+                                    .trim();
+                                const question = `o usuario ${name} disse:${input}`;
 
-                            if (input.length > 0) {
-                                const responseAi =
-                                    await agentAiResponse(question);
-                                const messageAi = {
-                                    userId: userIdAi,
-                                    name: nameAi,
-                                    content: responseAi.output_text,
-                                };
+                                const nameAi = "Bot OpenAI";
+                                const userIdAi = 0;
 
-                                await newMessege(
-                                    responseAi.output_text,
-                                    nameAi,
-                                    userIdAi,
-                                    "1",
-                                );
+                                if (input.length > 0) {
+                                    const responseAi =
+                                        await agentAiResponse(question);
+                                    const messageAi = {
+                                        userId: userIdAi,
+                                        name: nameAi,
+                                        content: responseAi.output_text,
+                                    };
 
-                                ws.clients.forEach((client) => {
-                                    client.send(JSON.stringify(messageAi));
-                                });
+                                    await newMessege(
+                                        responseAi.output_text,
+                                        nameAi,
+                                        userIdAi,
+                                        "1",
+                                    );
+
+                                    ws.clients.forEach((client) => {
+                                        client.send(JSON.stringify(messageAi));
+                                    });
+                                }
                             }
                         }
                     } catch (error) {

@@ -107,4 +107,21 @@ router.get("/messages", validateAcessToken, async (req, res) => {
     res.status(200).json(packageMessages);
 });
 
+router.post("/user-name", async (req, res) => {
+    const { userId } = req.body;
+    const user = await newDatabaseLogin.findOne({
+        where: {
+            id: userId,
+        },
+    });
+    if (user) {
+        const name = user.dataValues.name;
+        if (name) {
+            res.status(200).json({ name });
+        }
+    } else {
+        res.status(403);
+    }
+});
+
 export default router;

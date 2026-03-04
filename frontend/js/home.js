@@ -2,6 +2,30 @@ import { id } from "./validate_home.js";
 
 let socket;
 
+const newUser = async () => {
+    const userId = id;
+    const request = await fetch("http://localhost:9092/user-name", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId }),
+    });
+
+    const { name } = await request.json();
+
+    return name;
+};
+
+const renderAlertNewUser = (name) => {
+    const content = document.querySelector(".content");
+    const boxAlert = document.createElement("div");
+    boxAlert.classList.add("new-user");
+    boxAlert.innerText = `${name} joined the chat`;
+    content.appendChild(boxAlert);
+    scrollToBottom();
+};
+
 const webSocketConnection = () => {
     socket = new WebSocket("ws://localhost:9093");
 
@@ -21,19 +45,32 @@ const webSocketConnection = () => {
                     const { userId, name, content } = element;
                     renderMesseges(userId, name, content);
                 });
+
+                const name = await newUser();
+                renderAlertNewUser(name);
+
+                const messageSocket = JSON.stringify({
+                    type: "alert",
+                    data: name,
+                });
+                socket.send(messageSocket);
             }
         }
     };
 
     socket.onmessage = ({ data }) => {
-        const { userId, name, content } = JSON.parse(data);
-        console.log(data);
-        if (userId !== id) {
-            renderOtherMessages(name, content);
-            scrollToBottom();
+        const payload = JSON.parse(data);
+        if (payload.type === "alert") {
+            renderAlertNewUser(payload.userName);
         } else {
-            renderOwnerMesseges(content);
-            scrollToBottom();
+            const { userId, name, content } = JSON.parse(data);
+            if (userId !== id) {
+                renderOtherMessages(name, content);
+                scrollToBottom();
+            } else {
+                renderOwnerMesseges(content);
+                scrollToBottom();
+            }
         }
     };
 };
