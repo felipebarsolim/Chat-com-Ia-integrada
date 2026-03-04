@@ -1,13 +1,9 @@
 import { Sequelize } from "sequelize";
 
-const password = process.env.DATABASE_CHAT_PASSWORD;
-const databaseName = process.env.DATABASE_CHAT_NAME;
 const host = process.env.HOST_CHAT;
 const dialect = process.env.DIALECT_CHAT;
-const user = process.env.USER_CHAT;
-const port = process.env.DATABASE_CHAT_PORT;
 
-const sequelize = new Sequelize(databaseName, user, password, {
+const sequelize = new Sequelize(process.env.MYSQL_URL_CHAT, {
     host,
     dialect,
     logging: false,

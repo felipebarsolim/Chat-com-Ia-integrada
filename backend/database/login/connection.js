@@ -1,16 +1,9 @@
 import { Sequelize } from "sequelize";
 
-const sequelize = new Sequelize(
-    process.env.DATABASE_NAME,
-    process.env.USER,
-    process.env.DATABASE_PASSWORD,
-    {
-        host: process.env.HOST,
-        dialect: process.env.DIALECT,
-        port: process.env.DATABASE_PORT,
-        logging: false,
-    },
-);
+const sequelize = new Sequelize(process.env.MYSQL_URL, {
+    dialect: process.env.DIALECT,
+    port: process.env.DATABASE_PORT,
+});
 
 const connectionLoginDatabase = async () => {
     try {
