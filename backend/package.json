@@ -9,5 +9,11 @@
         "sequelize": "^6.37.7",
         "socket.io": "^4.8.3",
         "websocket": "^1.0.35"
+    },
+    "scripts": {
+        "start": "node app.js"
+    },
+    "engines": {
+        "node": "20.x"
     }
 }
